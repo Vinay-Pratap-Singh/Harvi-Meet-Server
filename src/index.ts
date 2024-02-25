@@ -28,6 +28,11 @@ const io = new Server(httpServer, {
 io.on("connection", (socket: Socket) => {
   console.log("socket connected successfully");
 
+  socket.on("sendNewStream", ({ newStream }) => {
+    console.log("data done");
+    socket.broadcast.emit("newStream", newStream);
+  });
+
   // when user disconnects
   socket.on("disconnect", () => {
     console.log("Socket connection disconnected");
