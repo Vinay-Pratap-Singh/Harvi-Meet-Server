@@ -28,9 +28,9 @@ const io = new Server(httpServer, {
 io.on("connection", (socket: Socket) => {
   console.log("socket connected successfully");
 
-  socket.on("sendNewStream", ({ newStream }) => {
-    console.log("data done");
-    socket.broadcast.emit("newStream", newStream);
+  socket.on("join-room", ({ currentRoomID, peerID }) => {
+    socket.join(currentRoomID);
+    socket.broadcast.to(currentRoomID).emit("joined-room", peerID);
   });
 
   // when user disconnects
