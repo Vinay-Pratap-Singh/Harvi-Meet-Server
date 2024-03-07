@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
+import { IEmojiData } from "./helper/interface";
 
 // setting up dot env
 dotenv.config();
@@ -28,10 +29,27 @@ const io = new Server(httpServer, {
 io.on("connection", (socket: Socket) => {
   console.log("socket connected successfully");
 
+  // to handle join room
   socket.on("join-room", ({ currentRoomID, peerID }) => {
     socket.join(currentRoomID);
     socket.broadcast.to(currentRoomID).emit("joined-room", peerID);
   });
+
+  // receive the emojies data
+  socket.on(
+    "newEmojies",
+    ({
+      updatedEmojiesData,
+      currentRoomID,
+    }: {
+      updatedEmojiesData: IEmojiData[];
+      currentRoomID: string;
+    }) => {
+      socket.broadcast
+        .to(currentRoomID)
+        .emit("updatedEmojies", updatedEmojiesData);
+    }
+  );
 
   // when user disconnects
   socket.on("disconnect", () => {
