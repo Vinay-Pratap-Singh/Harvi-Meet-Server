@@ -30,9 +30,9 @@ io.on("connection", (socket: Socket) => {
   console.log("socket connected successfully");
 
   // to handle join room
-  socket.on("join-room", ({ currentRoomID, peerID }) => {
+  socket.on("joinRoom", ({ currentRoomID, peerID, name }) => {
     socket.join(currentRoomID);
-    socket.broadcast.to(currentRoomID).emit("joined-room", peerID);
+    socket.broadcast.to(currentRoomID).emit("joinedRoom", { peerID, name });
   });
 
   // receive the emojies data
@@ -48,6 +48,24 @@ io.on("connection", (socket: Socket) => {
       socket.broadcast
         .to(currentRoomID)
         .emit("updatedEmojies", updatedEmojiesData);
+    }
+  );
+
+  // to handle mic update
+  socket.on(
+    "changeMicOption",
+    ({
+      peerID,
+      isMuted,
+      currentRoomID,
+    }: {
+      peerID: string;
+      isMuted: boolean;
+      currentRoomID: string;
+    }) => {
+      socket.broadcast
+        .to(currentRoomID)
+        .emit("updateMicOption", { peerID, isMuted });
     }
   );
 
