@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
-import { IEmojiData } from "./helper/interface";
+import { IEmojiData, IJoinedUsersData } from "./helper/interface";
 
 // setting up dot env
 dotenv.config();
@@ -25,14 +25,29 @@ const io = new Server(httpServer, {
   },
 });
 
+// for managing users data
+const joinedUsersData: IJoinedUsersData = {};
+
 // handling the socket connection
 io.on("connection", (socket: Socket) => {
   console.log("socket connected successfully");
 
+  // to add the user data
+  socket.on("addUserData", ({ peerID, roomID, isMeetingOrganiser, name }) => {
+    if (!joinedUsersData[roomID]) {
+      joinedUsersData[roomID] = {};
+    }
+    if (!joinedUsersData[roomID][peerID]) {
+      joinedUsersData[roomID][peerID] = { isMeetingOrganiser, name, peerID };
+    }
+    // sending users data to everyone in room including new user
+    io.to(roomID).emit("allUsersData", joinedUsersData[roomID]);
+  });
+
   // to handle join room
-  socket.on("joinRoom", ({ currentRoomID, peerID, name }) => {
+  socket.on("joinRoom", ({ currentRoomID, peerID }) => {
     socket.join(currentRoomID);
-    socket.broadcast.to(currentRoomID).emit("joinedRoom", { peerID, name });
+    socket.broadcast.to(currentRoomID).emit("joinedRoom", { peerID });
   });
 
   // receive the emojies data
